@@ -1,0 +1,52 @@
+body {
+  padding: 40px;
+}
+
+body,
+p {
+  font-size: 24px;
+}
+
+#venues-container {
+  float: left;
+  width: 500px;
+}
+
+#venues {
+  list-style: none;
+  border-top: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  padding-left: 0;
+  margin-top: 0;
+}
+
+#venues li {
+  padding: 30px;
+  border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  cursor: pointer;
+}
+
+#venues li:hover {
+  background: #d8cfcf;
+}
+
+#map-container {
+  float: left;
+  width: 800px;
+  height: 800px;
+  background: #d8cfcf;
+}
+
+#carInput {
+  margin-bottom: 30px;
+}
+
+.vehicle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 50px;
+  padding: 10px;
+  width: 40%;
+}
