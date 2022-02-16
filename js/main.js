@@ -1,10 +1,14 @@
-const { Model, Collection, View, Router, history } = Backbone;
+const { Model, Collection, View, Router, Events, history } = Backbone;
 //==================================================
 //====MODELS+=======================================
 //==================================================
 const Vehicle = Model.extend({
   idAttribute: 'regNumber',
   urlRoot: '/api/vehicles/',
+
+  defaults: {
+    regNumber: null,
+  },
 
   start: function () {
     console.log('Vehicle started...');
@@ -29,7 +33,7 @@ const Vehicle = Model.extend({
 
 const Car = Vehicle.extend({
   defaults: {
-    regNumber: null,
+    title: 'Car',
     colour: 'white',
   },
 
@@ -40,7 +44,7 @@ const Car = Vehicle.extend({
 
 const Boat = Vehicle.extend({
   defaults: {
-    regNumber: null,
+    title: 'Boat',
     material: 'wood',
   },
   start: function () {
@@ -55,38 +59,18 @@ const Cars = Collection.extend({ model: Car });
 //==================================================
 //====VIEWS++=======================================
 //==================================================
-const BoatView = View.extend({
+const VehicleView = View.extend({
   tagName: 'li',
   className: 'vehicle',
   attributes: {
     'data-material': '',
-  },
-
-  render: function () {
-    const source = $('#boatTemplate');
-    const template = _.template(source);
-    const html = template(this.model.toJSON());
-
-    this.$el.html(html);
-    this.$el.attr('id', this.model.cid);
-
-    return this;
-  },
-});
-
-const CarView = View.extend({
-  tagName: 'li',
-  className: 'vehicle',
-  attributes: {
     'data-colour': '',
   },
 
   render: function () {
-    const source = $('#carTemplate').html();
+    const source = $('#vehicleTemplate').html();
     const template = _.template(source);
     const html = template(this.model.toJSON());
-
-    console.log('html', html);
 
     this.$el.html(html);
     this.$el.attr('id', this.model.cid);
@@ -95,26 +79,95 @@ const CarView = View.extend({
   },
 });
 
-const CarsView = View.extend({
-  el: $('#carsContainer'),
+const NewVehicleInput = View.extend({
+  el: '#inputContainer',
+
+  events: {
+    'click #add-new': 'addNew',
+  },
+
+  addNew: function () {
+    const input = $('#input-new');
+    const inputValueNotEmpty = input.val().trim().length;
+
+    if (inputValueNotEmpty) {
+      bus.trigger('newVehicleCreated', input.val());
+      return input.val('');
+    }
+    console.log('Enter some value before adding');
+  },
+
+  render: function () {
+    const source = $('#newVehicleInputTemplate').html();
+    const template = _.template(source);
+
+    this.$el.html(template());
+
+    return this;
+  },
+});
+
+const VehiclesView = View.extend({
+  events: {
+    'click #btn-delete': 'onDeleteItem',
+  },
+
+  initialize: function () {
+    bus.on('newVehicleCreated', this.onAddItem, this);
+  },
+
+  onDeleteItem: function (event) {
+    const elId = event.target.parentElement.id;
+    this.$(`li#${elId}`).remove();
+  },
 
   render: function () {
     const self = this;
-    console.log('this.model', this.model);
 
-    this.model.each(function (car) {
-      const carView = new CarView({ model: car });
-      console.log('carView', carView.render().$el);
+    this.model.each(function (vehicle) {
+      const vehicleView = new VehicleView({ model: vehicle });
 
-      self.$el.append(carView.render().$el);
+      self.$el.append(vehicleView.render().$el);
     });
   },
 });
 
+const CarsView = VehiclesView.extend({
+  el: '#carsContainer',
+
+  onAddItem: function (data) {
+    const newVehicle = new Car({ regNumber: data });
+    const newVehicleView = new VehicleView({ model: newVehicle });
+
+    this.model.add(newVehicle, { at: 0 });
+    this.$el.prepend(newVehicleView.render().$el);
+  },
+});
+
+const BoatsView = VehiclesView.extend({
+  el: '#boatsContainer',
+
+  onAddItem: function (data) {
+    const newVehicle = new Boat({ regNumber: data });
+    const newVehicleView = new VehicleView({ model: newVehicle });
+    console.log('this.model', this.model);
+
+    this.model.add(newVehicle, { at: 0 });
+    this.$el.prepend(newVehicleView.render().$el);
+  },
+});
+
+//===================================================
+//=======PAGES=======================================
+
 const HomePageView = View.extend({
   el: '#container',
+
   render: function () {
-    this.$el.html('HOME VIEW');
+    const source = $('#homePageTemplate').html();
+    const template = _.template(source);
+
+    this.$el.html(template());
 
     return this;
   },
@@ -123,21 +176,11 @@ const HomePageView = View.extend({
 const CarsPageView = View.extend({
   el: '#container',
 
-  initialize: function () {
-    const carsView = new CarsView({ el: '#carsContainer', model: cars });
-    console.log('carsView', carsView);
-    console.log('cars', cars);
-
-    carsView.render();
-    console.log('carsView.render()', carsView.render());
-    this.render();
-  },
-
   render: function () {
     const source = $('#carsPageTemplate').html();
     const template = _.template(source);
 
-    this.$el.html(template);
+    this.$el.html(template());
 
     return this;
   },
@@ -146,7 +189,10 @@ const CarsPageView = View.extend({
 const BoatsPageView = View.extend({
   el: '#container',
   render: function () {
-    this.$el.html('BOATS VIEW');
+    const source = $('#boatsPageTemplate').html();
+    const template = _.template(source);
+
+    this.$el.html(template);
 
     return this;
   },
@@ -154,8 +200,12 @@ const BoatsPageView = View.extend({
 
 const DefaultPageView = View.extend({
   el: '#container',
+
   render: function () {
-    this.$el.html('PAGE NOT FOUND');
+    const source = $('#defaultPageTemplate').html();
+    const template = _.template(source);
+
+    this.$el.html(template);
 
     return this;
   },
@@ -190,10 +240,20 @@ const AppRouter = Router.extend({
   viewCars: function () {
     const view = new CarsPageView();
     view.render();
+
+    const carsView = new CarsView({ model: cars });
+    const newCarInput = new NewVehicleInput();
+    carsView.render();
+    newCarInput.render();
   },
   viewBoats: function () {
     const view = new BoatsPageView();
     view.render();
+
+    const boatsView = new BoatsView({ model: boats });
+    const newBoatInput = new NewVehicleInput();
+    boatsView.render();
+    newBoatInput.render();
   },
   viewDefault: function () {
     const view = new DefaultPageView();
@@ -204,17 +264,23 @@ const AppRouter = Router.extend({
 //==================================================
 //====INITIATE======================================
 //==================================================
+const bus = _.extend({}, Events);
+
 const cars = new Cars([
   new Car({ regNumber: 'XLI887', colour: 'Blue' }),
   new Car({ regNumber: 'ZNP123', colour: 'Blue' }),
   new Car({ regNumber: 'XUV456', colour: 'Gray' }),
 ]);
 
+const boats = new Boats([
+  new Boat({ regNumber: 'XLI87' }),
+  new Boat({ regNumber: 'ZNP13' }),
+  new Boat({ regNumber: 'XUV46' }),
+]);
+
 const appRouter = new AppRouter();
 const navView = new NavView({ el: '#nav' });
-// const carsView = new CarsView({ model: cars });
 
 history.start({ pushState: true });
 
 navView.render();
-// carsView.render();

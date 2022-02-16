@@ -23,7 +23,6 @@
         <li class="route-link" data-url="boats">Boats</li>
       </ul>
     </nav>
-    <!-- <div id="carsContainer"></div> -->
     <div id="container"></div>
 
     <!-- HTML -->
@@ -34,31 +33,44 @@
 
     <!-- TEMPLATES -->
 
-    <script id="newVehicleTemplate" type="text/template">
-      <input id="new-todo" class="registration-number" type="text" placeholder="Enter new car..."/>
-      <button id="add-new-todo" class="add">Add</button>
+    <script id="newVehicleInputTemplate" type="text/template">
+      <input id="input-new" class="registration-number" type="text" placeholder="Enter new car..."/>
+      <button id="add-new" class="add">Add</button>
     </script>
 
-    <script id="carTemplate" type="text/html">
-      Car <%= regNumber%>
+    <script id="vehicleTemplate" type="text/html">
+      <%= title%> <%= regNumber%>
       <button id="btn-delete">Delete</button>
     </script>
 
-    <!-- <script id="boatTemplate" type="text/html">
-      <span>Boat</span>
-      <%= regNumber%>
-      <button id="btn-delete">Delete</button>
-    </script> -->
+    <script id="homePageTemplate" type="text/html">
+      <div class="main">
+        <h2>Welcome Home page</h2>
+      </div>
+    </script>
 
     <script id="carsPageTemplate" type="text/html">
       <div class="main">
         <h2>Cars page</h2>
-        <!-- <div id="inputContainer"></div> -->
-        <div id="carsContainer"></div>
+        <div class="main-section" id="inputContainer"></div>
+        <div class="main-section" id="carsContainer"></div>
       </div>
     </script>
 
-    <!-- <div id="boatContainer"></div> -->
+    <script id="boatsPageTemplate" type="text/html">
+      <div class="main">
+        <h2>Boats page</h2>
+        <div class="main-section" id="inputContainer"></div>
+        <div class="main-section" id="boatsContainer"></div>
+      </div>
+    </script>
+
+    <script id="defaultPageTemplate" type="text/html">
+      <div class="main">
+        <h2>Page Not Found</h2>
+        <p>Please try your search again</p>
+      </div>
+    </script>
 
     <!-- TEMPLATES -->
 
